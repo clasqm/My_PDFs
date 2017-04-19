@@ -1,0 +1,23 @@
+//export current file to a text file
+//these are really just plain text files containing pathnames and can be made with ls or query
+// just be careful of blank lines at the end
+sub ExportFile()
+	local exportfile$,exportentry$
+	ActionDisplay("Exporting...")
+	if totalcounter=0 then
+		alert "Nothing to export!", "OK", "warning"
+		TotalItems()
+		return
+	endif
+	exportfile$=Filepanel "Save-File", "Export", "/boot/home"
+	if exportfile$="" return : TotalItems()//user pressed cancel
+	open exportfile$ for writing as #1
+	for f = 1 to totalcounter
+		exportentry$=ColumnBox Get$ "CollList",2, f
+		print #1 exportentry$
+	next f
+	close #1
+	TotalItems()
+end sub
+
+

@@ -1,0 +1,75 @@
+// Main Message Loop
+dim msg$(1)
+while(not leavingLoop)
+	nCommands = token(message$, msg$(), "|")
+
+	for everyCommand = 1 to nCommands
+		if(DEBUG and msg$(everyCommand)<>"") print msg$(everyCommand)
+
+		switch(msg$(everyCommand))
+			case "_QuitRequested":
+			case "MainWindow:_QuitRequested": case "MainWindow:File:Quit"
+				leavingLoop = true
+				break
+			case "HelpBox:_QuitRequested":
+				window close "HelpBox"
+				break
+			case "MainWindow:File:Rescan"
+				Scan(): ColumnBox Select "CollList", 1:itemselected=1
+				break
+			case "MainWindow:File:Export"
+				ExportFile()
+				break
+			case "MainWindow:File:Import"
+				ImportFile()
+				break
+			case "MainWindow:File:Revert:to Last Scan"
+				Revert2Scan()
+				break
+			case "MainWindow:File:Revert:to Last Filter"
+				Revert2Filter()
+				break	
+			case "MainWindow:Item:Open": case "OpenButton"
+				LaunchItem()
+				break
+			case "MainWindow:Item:Delete": case "DeleteButton"
+				DeleteItem()
+				break
+			case "MainWindow:Item:Reveal in Tracker": case "RevealButton"
+				RevealItem()
+				break
+			case "MainWindow:Item:Copy": case "CopyButton"
+				ToClipboard()
+				break
+			case "MainWindow:Help:Help":
+				ShowHelp()
+				break
+			case "MainWindow:Help:Updates":
+				FindUpdates()
+				break
+			case "MainWindow:Help:About"
+				alert "My PDFs " + AppVersion$  + "\nby Michel Clasquin-Johnson\nPublic Domain Software, 2014", "OK", "Info"
+				break
+			case "FilterButton"
+				FilterEntries():ColumnBox Select "CollList", 1:itemselected=1
+				break
+			default:
+				break
+		end switch
+		
+	//Some actions that don't lend themselves to the switch loop
+	if left$(msg$(everyCommand),9)="CollList:" itemselected= Columnbox Get "CollList"
+	if left$(msg$(everyCommand),10)="FilterText" FilterEntries():ColumnBox Select "CollList", 1:itemselected=1
+
+	next everyCommand
+
+wend
+
+CloseWindow()
+
+end
+
+
+
+
+

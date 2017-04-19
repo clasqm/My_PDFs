@@ -1,0 +1,13 @@
+sub Scan()
+	local scanforpdf$,scanforxpdf$
+	UI("disable",0)
+	ActionDisplay("Scanning...")
+	scanforpdf$ = "query -e -f -a \"((name==\"*\")&&(BEOS:TYPE==\"application/pdf\"))\" >/boot/home/config/settings/bookshelf.raw"
+	system(scanforpdf$)
+	//scanforxpdf$ = "query -e -f -a \"((name==\"*\")&&(BEOS:TYPE==\"application/x-pdf\"))\" >>/boot/home/config/settings/bookshelf.raw"
+	//system(scanforxpdf$)
+	ReadAndDisplay("/boot/home/config/settings/bookshelf.raw")
+	ColumnBox Select "CollList", 1:itemselected=1
+	TotalItems()
+end sub
+

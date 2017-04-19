@@ -1,0 +1,12 @@
+//Revert to last time a scan was done
+sub Revert2Scan()
+	local fileexist$
+	fileexist$=system$("if test -e /boot/home/config/settings/bookshelf.raw; then echo yes; else echo no;fi")
+	//if the file does not exist, program has not run before
+	//This is probably overkill - this was already taken car of in ScanOrImport()
+	if left$(fileexist$,3)="yes" then
+		ReadAndDisplay("/boot/home/config/settings/bookshelf.raw")
+		ColumnBox Select "CollList", 1:itemselected=1
+	end if
+end sub
+

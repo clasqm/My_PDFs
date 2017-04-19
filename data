@@ -1,0 +1,35 @@
+#####Data comes here######
+
+label Helpdata
+
+data "My PDFs v0.4", "\n"
+data "By Michel Clasquin-Johnson"
+data "Public Domain Software 2009-2013"
+data "\n"
+data "My PDFs is a program to manage your PDF e-book collection."
+data "\n"
+data "When you first start My PDFs, it scans all mounted BeFs drives for pdf documents. Once you have scanned the disk, My PDFs will give you the option of reloading the previous scan on startup."
+data "\n"
+data "From there, the menus and buttons will allow you to:"
+data "\n"
+data "*\tOpen an entry (BePDF or another default PDF reader required)"
+data "*\tImport and export your collections"
+data "*\tFilter your collection (case-insensitive) - This function does not use * or ? wildcards. If you want to filter all your e-books by Ben Bova, just type bova. To see all your books again, "
+data "*\tRevert to last scan or to last filter"
+data "*\tDelete the collection entry (will reappear on the next rescan) and optionally delete the pdf file too (will not appear on rescan)"
+data "*\tCopy either the title of the pdf or the full pathname into the clipboard"
+data "\n"
+data "To add items to the collection, just add pdf files to your BeFS disk and rescan."
+data "\n"
+data "This program does not keep a separate database of item names, so it's up to you to give your pdf documents sane filenames. To help you do this, My PDFs lets you reveal the file in Tracker. Rename \"Fg257xv.pdf\" to \"Moby Dick by Herman Melville.pdf\" and that's how it will show up after a rescan."
+data "\n"
+data "I wrote this program for my own amusement and It is now feature-complete as far as I am concerned. But please send bug reports."
+data "\n"
+data "My PDFs is Public Domain software. Which means \"go ahead and build a software empire on this, just don't bug me about it\".  :-)"
+data "\n"
+data "I've tested this program on a bare PM Nightly installation with no third party software installed."
+data "\n"
+data "0.4 -  December 2013 - Initial release in hpkg format after forking it from the earlier Bookshelf program. Source supplied in Yabadabbadoo format."
+data "end_of_help_data"
+
+

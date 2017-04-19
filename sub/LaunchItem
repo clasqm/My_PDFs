@@ -1,0 +1,8 @@
+//launch item into default application e.g PDF into BePDF
+sub LaunchItem()
+	local thing2launch$
+	thing2launch$ = ColumnBox Get$ "CollList", 2, itemselected
+	launch thing2launch$
+end sub
+
+

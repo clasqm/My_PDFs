@@ -1,0 +1,532 @@
+#!yab
+
+//My_PDFs 0.4 by Michel Clasquin-Johnson
+//Public Domain Software 2014
+
+// set DEBUG = 1 to print out all messages on the console
+DEBUG = 0
+
+//GLOBAL VARIABLES - just for reference: yab does not demand declaration of these
+everyCommand=1 // counter for main loop
+itemselected=1 // item selected in Collection list
+totalcounter=0      // total number of items
+AppVersion$= "v0.4.1"
+UpdateFile$ = "http://mysite.mweb.co.za/residents/clasqm/haiku/yab-apps/MY_PDFsversion.txt"
+
+OpenWindow()
+MakeMenu()
+MakeColumnBox()
+MakeButtons()
+ScanOrImport()
+
+// Main Message Loop
+dim msg$(1)
+while(not leavingLoop)
+	nCommands = token(message$, msg$(), "|")
+
+	for everyCommand = 1 to nCommands
+		if(DEBUG and msg$(everyCommand)<>"") print msg$(everyCommand)
+
+		switch(msg$(everyCommand))
+			case "_QuitRequested":
+			case "MainWindow:_QuitRequested": case "MainWindow:File:Quit"
+				leavingLoop = true
+				break
+			case "HelpBox:_QuitRequested":
+				window close "HelpBox"
+				break
+			case "MainWindow:File:Rescan"
+				Scan(): ColumnBox Select "CollList", 1:itemselected=1
+				break
+			case "MainWindow:File:Export"
+				ExportFile()
+				break
+			case "MainWindow:File:Import"
+				ImportFile()
+				break
+			case "MainWindow:File:Revert:to Last Scan"
+				Revert2Scan()
+				break
+			case "MainWindow:File:Revert:to Last Filter"
+				Revert2Filter()
+				break	
+			case "MainWindow:Item:Open": case "OpenButton"
+				LaunchItem()
+				break
+			case "MainWindow:Item:Delete": case "DeleteButton"
+				DeleteItem()
+				break
+			case "MainWindow:Item:Reveal in Tracker": case "RevealButton"
+				RevealItem()
+				break
+			case "MainWindow:Item:Copy": case "CopyButton"
+				ToClipboard()
+				break
+			case "MainWindow:Help:Help":
+				ShowHelp()
+				break
+			case "MainWindow:Help:Updates":
+				FindUpdates()
+				break
+			case "MainWindow:Help:About"
+				alert "My PDFs " + AppVersion$  + "\nby Michel Clasquin-Johnson\nPublic Domain Software, 2014", "OK", "Info"
+				break
+			case "FilterButton"
+				FilterEntries():ColumnBox Select "CollList", 1:itemselected=1
+				break
+			default:
+				break
+		end switch
+		
+	//Some actions that don't lend themselves to the switch loop
+	if left$(msg$(everyCommand),9)="CollList:" itemselected= Columnbox Get "CollList"
+	if left$(msg$(everyCommand),10)="FilterText" FilterEntries():ColumnBox Select "CollList", 1:itemselected=1
+
+	next everyCommand
+
+wend
+
+CloseWindow()
+
+end
+
+
+
+
+
+//display message on bottom right corner
+sub ActionDisplay(action$)
+	Draw Flush "TotalView" //clean off old total
+	Draw Text 0,20, action$,"TotalView" 
+end sub
+
+// Close down the main window
+sub CloseWindow()
+	window close "MainWindow"
+	return
+end sub
+
+
+//Delete an item from the collection and optionally the file it refers to
+sub DeleteItem()
+	local confirm, attrfile$, attrset$
+	if totalcounter = 0 return
+	UI("disable",0)
+	confirm=alert "This entry will be removed from the collection (but will reappear in the next scan). Remove the file too?","Remove File","Reveal in Tracker", "Just Remove Entry","Warning"
+	switch confirm
+		case 1 //Remove file 
+			RemoveFile()
+			break
+		case 2 // Reveal
+			RevealItem()
+			break
+		case 3 
+			break 
+		default
+			break
+	end switch
+	ColumnBox Remove "CollList", itemselected
+	UI("enable",1)
+	TotalItems()
+	//the next bit prevents the selected item from reverting to 1
+	if totalcounter=1 or totalcounter = 0 then
+		ColumnBox Select "CollList", 1:itemselected=1
+	else
+		itemselected=itemselected - 1
+		ColumnBox Select "CollList", itemselected
+	endif
+end sub
+
+
+//find spaces, backslashes and single and double quotes in strings and escape them
+sub Escaper$(name$)
+	local name2$
+	for f = 1 to len(name$)
+		if mid$(name$, f, 1) = chr$(39) then
+			name2$=name2$ + chr$(92) + chr$(39)
+		elseif mid$(name$, f, 1) = chr$(92) then
+			name2$=name2$ + chr$(92) + chr$(92)
+		elseif mid$(name$, f, 1) = chr$(34) then
+			name2$=name2$ + chr$(92) + chr$(34)
+		elseif mid$(name$, f, 1) = chr$(32) then
+			name2$=name2$ + chr$(92) + chr$(32)
+		else
+			name2$= name2$ + mid$(name$,f,1)
+		end if	
+	next f
+	return name2$
+End sub
+
+
+//export current file to a text file
+//these are really just plain text files containing pathnames and can be made with ls or query
+// just be careful of blank lines at the end
+sub ExportFile()
+	local exportfile$,exportentry$
+	ActionDisplay("Exporting...")
+	if totalcounter=0 then
+		alert "Nothing to export!", "OK", "warning"
+		TotalItems()
+		return
+	endif
+	exportfile$=Filepanel "Save-File", "Export", "/boot/home"
+	if exportfile$="" return : TotalItems()//user pressed cancel
+	open exportfile$ for writing as #1
+	for f = 1 to totalcounter
+		exportentry$=ColumnBox Get$ "CollList",2, f
+		print #1 exportentry$
+	next f
+	close #1
+	TotalItems()
+end sub
+
+
+//search Titles (not pathnames) for search string
+//save to a temp file in settings, then load that file
+sub FilterEntries()
+	local thefilter$,filtercount, theentry$
+	UI("disable",0)
+	thefilter$= TextControl Get$ "FilterText"
+	if thefilter$ = "" or thefilter$ ="Enter Filter text here" then
+		UI("enable",1)
+		return
+	end if
+	ActionDisplay("Filtering")
+	filtercount=0
+	open "/boot/home/config/settings/bookshelf.filter" for writing as #1
+	for f = 1 to totalcounter
+		theentry$=ColumnBox Get$ "CollList",1, f
+		if instr(lower$(theentry$), lower$(thefilter$)) then
+			filtercount= filtercount + 1
+			theentry$=ColumnBox Get$ "CollList",2, f
+			print #1 theentry$
+		end if	
+	next f
+	close #1
+	if filtercount = 0 then
+		alert "No items found", "OK", "warning"
+		UI("enable",1)
+	else
+		ReadAndDisplay("/boot/home/config/settings/bookshelf.filter")
+		TextControl Set "FilterText", "Enter Filter text here"
+	end if
+	TotalItems()
+end sub
+
+sub FindUpdates()
+	local version$,selector
+	print "in findupdate"
+	version$ = system$("curl --connect-timeout 1 " + UpdateFile$)
+	print version$
+	if left$(version$,1)<>"v" then
+		alert "Unable to connect to update server!", "OK", "warning"
+		return
+	endif
+	if version$ = AppVersion$ then
+		alert "You have the latest version of this program.", "OK", "info"
+		return
+	else
+		selector = alert "A newer version of this program is available. Take  a look?", "Yes", "No", "", "info"
+		if selector = 1 launch "http://mysite.mweb.co.za/residents/clasqm/haiku/yab-apps/index.html"
+	endif
+end sub
+
+//import the text files created in ExportFile()
+sub ImportFile()
+	local importfile$
+	UI("disable",0)
+	ActionDisplay("Importing...")
+	importfile$=Filepanel "Load-File", "Export", "/boot/home"
+	if importfile$="" then //user pressed cancel
+		UI("enable",1)
+		TotalItems()
+		return
+	end if
+	ReadAndDisplay(importfile$)
+	ColumnBox Select "CollList", 1:itemselected=1
+end sub
+
+
+//launch item into default application e.g PDF into BePDF
+sub LaunchItem()
+	local thing2launch$
+	thing2launch$ = ColumnBox Get$ "CollList", 2, itemselected
+	launch thing2launch$
+end sub
+
+
+//make buttons and search field
+sub MakeButtons()
+	Button 0,0 to 75,25, "OpenButton", "Open", "ButtonView": Tooltip "OpenButton", "Open this entry with the default viewer application"
+	Button 80,0 to 155,25, "DeleteButton", "Delete", "ButtonView": Tooltip "DeleteButton", "Remove this entry from the collection"
+	Button 160,0 to 235,25, "CopyButton", "Copy", "ButtonView": Tooltip "CopyButton", "Copy this entry to clipboard"
+	Button 240,0 to 315,25, "RevealButton", "Reveal", "ButtonView": Tooltip "RevealButton", "Reveal this entry in Tracker"
+	Button 540,0 to 615,25, "FilterButton", "Filter", "ButtonView": Tooltip "FilterButton", "Edit the textbox to the left to indicate what\nyou want to search for, then click on Filter"
+	TextControl 320,0 to 535, 25, "FilterText", "", "Enter Filter text here", "ButtonView"
+end sub
+//Make the container for the collection
+sub MakeColumnBox()
+	ColumnBox 1,23 to 700,500,"CollList",1, "resizable","MainWindow"
+	ColumnBox Column "CollList", "Title", 1, 400,200,300, "align-left"
+	ColumnBox Column "CollList", "Path", 2, 500, 200,350, "align-left"
+	TotalItems()	
+end sub
+
+
+// Create the menu
+sub MakeMenu()
+	menu "File", "Rescan", "R", "MainWindow"
+	menu "File", "Export", "X", "MainWindow"
+	menu "File", "Import", "I", "MainWindow"
+	menu "File", "Revert", "", "MainWindow"
+		submenu "File", "Revert", "to Last Scan", "", "MainWindow"
+		submenu "File", "Revert", "to Last Filter", "", "MainWindow"
+	menu "File", "Quit", "Q", "MainWindow"	
+	Menu "Item", "Open", "O", "MainWindow"
+	Menu "Item", "Delete", "D", "MainWindow"
+	Menu "Item", "Copy", "C", "MainWindow"	
+	Menu "Item", "Reveal in Tracker", "R", "MainWindow"
+	menu "Help", "Help", "", "MainWindow"
+	menu "Help", "Updates", "", "MainWindow"
+	menu "Help", "About", "", "MainWindow"
+end sub
+
+
+// Setup the main window here
+sub OpenWindow()
+	window open 100,100 to 800,630, "MainWindow", "My PDFs"
+	window set "MainWindow", "Flags", "Not-Resizable, Not-Zoomable"
+	view 625,500 to 700,530, "TotalView", "MainWindow"
+	view 4,503 to 624,530, "ButtonView", "MainWindow"
+end sub
+
+
+
+
+//Read a file and pump data into the columnbox
+sub ReadAndDisplay(filename$)
+	local tokennum, itempathname$,shortname$, t$(10),q
+	ColumnBox Clear "CollList"
+	//It is the calling routines job to supply filename$ - no escape chars, no quotes
+	open filename$ for reading as #1
+	q=1
+	while(not EOF(1))
+		line input #1 itempathname$
+		tokennum= token(itempathname$, t$(), "/")
+		shortname$ = t$(tokennum)
+		if instr(itempathname$, "/boot/trash") = 0 then
+			ColumnBox add "CollList", 1, q,20, shortname$
+			ColumnBox add "CollList", 2, q,20, itempathname$
+			q=q+1
+		endif
+	wend
+	close #1
+	TotalItems()
+	UI("enable",1)
+end sub
+
+//actually remove/trash the file
+sub RemoveFile()
+	local confirm,longname$
+	longname$ = ColumnBox Get$ "CollList", 2, itemselected
+	longname$ = Escaper$(longname$)
+	confirm=alert "Send file to Trash or really delete it?","Trash file","Delete file", "Cancel","Warning"
+	switch confirm
+		case 1 //trash
+				system("trash " + longname$)
+				break
+		case 2 //delete
+			system("rm -f " + longname$)
+			break
+		case 3 //get the hell out of Dodge
+			TotalItems()
+			return 
+		default
+			break
+	end switch
+end sub
+//reveal item in Tracker
+sub RevealItem()
+	local shortname$,longname$, dirname$
+	shortname$ = ColumnBox Get$ "CollList", 1, itemselected
+	longname$ = ColumnBox Get$ "CollList", 2, itemselected
+	dirname$ = left$(longname$, len(longname$) - len(shortname$))
+	dirname$=Escaper$(dirname$)
+	system("/boot/system/Tracker " + dirname$ + " &")
+	TotalItems()
+end sub
+
+//revert to last time a filter was applied
+sub Revert2Filter()
+	local fileexist$
+	fileexist$=system$("if test -e /boot/home/config/settings/bookshelf.filter; then echo yes; else echo no;fi")
+	//if the file does not exist, program has not run before
+	//This is NOT overkill - it is possible that the user has scanned but never filtered before
+	if left$(fileexist$,3)="yes" then
+		ReadAndDisplay("/boot/home/config/settings/bookshelf.filter")
+		ColumnBox Select "CollList", 1:itemselected=1
+	end if
+	//TODO: amalgamate the two reversion subroutines?
+end sub
+//Revert to last time a scan was done
+sub Revert2Scan()
+	local fileexist$
+	fileexist$=system$("if test -e /boot/home/config/settings/bookshelf.raw; then echo yes; else echo no;fi")
+	//if the file does not exist, program has not run before
+	//This is probably overkill - this was already taken car of in ScanOrImport()
+	if left$(fileexist$,3)="yes" then
+		ReadAndDisplay("/boot/home/config/settings/bookshelf.raw")
+		ColumnBox Select "CollList", 1:itemselected=1
+	end if
+end sub
+
+sub Scan()
+	local scanforpdf$,scanforxpdf$
+	UI("disable",0)
+	ActionDisplay("Scanning...")
+	scanforpdf$ = "query -e -f -a \"((name==\"*\")&&(BEOS:TYPE==\"application/pdf\"))\" >/boot/home/config/settings/bookshelf.raw"
+	system(scanforpdf$)
+	//scanforxpdf$ = "query -e -f -a \"((name==\"*\")&&(BEOS:TYPE==\"application/x-pdf\"))\" >>/boot/home/config/settings/bookshelf.raw"
+	//system(scanforxpdf$)
+	ReadAndDisplay("/boot/home/config/settings/bookshelf.raw")
+	ColumnBox Select "CollList", 1:itemselected=1
+	TotalItems()
+end sub
+
+//Check for first-time usage
+//give user startup options
+//reverting to last scan should speed things up a bit
+sub ScanOrImport()
+	local askuser,settingsexist$
+	UI("disable",0)
+	settingsexist$=system$("if test -e /boot/home/config/settings/Bookshelf.settings; then echo yes; else echo no;fi")
+	//if the settings file does not exist, program has not run before
+	if left$(settingsexist$,2)= "no" then
+		alert "Running program for the first time. My PDFs will scan all mounted BeFS volumes for PDF files.", "OK", "info"
+		Scan()
+		system("touch /boot/home/config/settings/Bookshelf.settings")
+	elseif left$(settingsexist$,3)="yes" then
+		askuser=alert "Scan for PDF files, Revert to previous scan or Import an existing collection?", "Scan", "Revert","Import","none"
+		switch	askuser
+			case 1
+				Scan()
+				break
+			case 2
+				Revert2Scan()
+				break
+			case 3
+				ImportFile()
+				break
+			default
+				break
+		end switch
+	end if
+	UI("enable",1)
+	TotalItems()
+end sub
+
+sub ShowHelp()
+local startX, startY, help$
+	startX = (Window Get "MainWindow","Position-X") + 50
+	startY = (Window Get "MainWindow","Position-Y") + 50
+	Window Open startX, startY to startX + 600, startY + 400, "HelpBox", "My PDFs Help"
+	Window Set "HelpBox", "Feel", "Floating-App"
+	Window Set "HelpBox", "Flags", "Not-Resizable"
+	Window Set "HelpBox", "Flags", "Not-Zoomable"
+	textedit 1,1 to 600,400, "HelpTextEdit",1 , "HelpBox"
+	Textedit set "HelpTextEdit", "editable", 0
+	restore Helpdata
+	do 
+		read help$
+		if left$(help$,1) = "<" read help$
+		if (help$ = "end_of_help_data") break
+		TextEdit Add "HelpTextEdit", help$ + "\n"
+	loop
+end sub
+
+
+
+
+//Copy either title or pathname to clipboard
+sub ToClipboard()
+	local whichone, entry$
+	whichone = alert "Do you want to copy the Title or the full Pathname of the selected item to clipboard?","Title", "Pathname", "Cancel", "none"
+	switch whichone
+		case 1: case 2
+			entry$=ColumnBox Get$ "CollList",whichone, itemselected
+			Clipboard Copy entry$
+			break
+		default
+			break
+	end switch
+end sub
+//Print number of items in bottom right hand corner
+sub TotalItems()
+	local count$
+	totalcounter = ColumnBox Count "CollList"
+	count$ = str$(totalcounter) + " Items "
+	Draw Flush "TotalView" //clean off old total
+	Draw Text 0,20, count$,"TotalView" 
+end sub
+
+
+//enable or disable the entire UI - expects parameter "enable" or "disable
+// and 1 or 0
+sub UI(onoff$,onoff)
+	menu set "File", "Rescan", onoff$, "MainWindow"
+	menu set "File", "Export", onoff$, "MainWindow"
+	menu set "File", "Import", onoff$, "MainWindow"
+	submenu set "File", "Revert", "to Last Scan", onoff$, "MainWindow"
+	submenu set "File", "Revert", "to Last Filter", onoff$, "MainWindow"
+	menu set "File", "Settings", onoff$, "MainWindow"
+	menu set "File", "Quit", onoff$, "MainWindow"
+	Menu set "Item", "Open", onoff$, "MainWindow"
+	Menu set "Item", "Delete", onoff$, "MainWindow"
+	Menu set "Item", "Copy", onoff$, "MainWindow"	
+	Menu set "Item", "Reveal in Tracker", onoff$, "MainWindow"
+	menu set "Help", "Help", onoff$, "MainWindow"
+	menu set "Help", "About", onoff$, "MainWindow"
+	Option Set "OpenButton", "Enabled", onoff
+	Option Set "DeleteButton", "Enabled", onoff
+	Option Set "CopyButton", "Enabled", onoff
+	Option Set "RevealButton", "Enabled", onoff
+	Option Set "FilterButton", "Enabled", onoff
+	Option Set "FilterText", "Enabled", onoff
+end sub
+
+
+#####Data comes here######
+
+label Helpdata
+
+data "My PDFs v0.4", "\n"
+data "By Michel Clasquin-Johnson"
+data "Public Domain Software 2009-2013"
+data "\n"
+data "My PDFs is a program to manage your PDF e-book collection."
+data "\n"
+data "When you first start My PDFs, it scans all mounted BeFs drives for pdf documents. Once you have scanned the disk, My PDFs will give you the option of reloading the previous scan on startup."
+data "\n"
+data "From there, the menus and buttons will allow you to:"
+data "\n"
+data "*\tOpen an entry (BePDF or another default PDF reader required)"
+data "*\tImport and export your collections"
+data "*\tFilter your collection (case-insensitive) - This function does not use * or ? wildcards. If you want to filter all your e-books by Ben Bova, just type bova. To see all your books again, "
+data "*\tRevert to last scan or to last filter"
+data "*\tDelete the collection entry (will reappear on the next rescan) and optionally delete the pdf file too (will not appear on rescan)"
+data "*\tCopy either the title of the pdf or the full pathname into the clipboard"
+data "\n"
+data "To add items to the collection, just add pdf files to your BeFS disk and rescan."
+data "\n"
+data "This program does not keep a separate database of item names, so it's up to you to give your pdf documents sane filenames. To help you do this, My PDFs lets you reveal the file in Tracker. Rename \"Fg257xv.pdf\" to \"Moby Dick by Herman Melville.pdf\" and that's how it will show up after a rescan."
+data "\n"
+data "I wrote this program for my own amusement and It is now feature-complete as far as I am concerned. But please send bug reports."
+data "\n"
+data "My PDFs is Public Domain software. Which means \"go ahead and build a software empire on this, just don't bug me about it\".  :-)"
+data "\n"
+data "I've tested this program on a bare PM Nightly installation with no third party software installed."
+data "\n"
+data "0.4 -  December 2013 - Initial release in hpkg format after forking it from the earlier Bookshelf program. Source supplied in Yabadabbadoo format."
+data "end_of_help_data"
+
+

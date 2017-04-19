@@ -1,0 +1,21 @@
+#!yab
+
+//My_PDFs 0.4 by Michel Clasquin-Johnson
+//Public Domain Software 2014
+
+// set DEBUG = 1 to print out all messages on the console
+DEBUG = 0
+
+//GLOBAL VARIABLES - just for reference: yab does not demand declaration of these
+everyCommand=1 // counter for main loop
+itemselected=1 // item selected in Collection list
+totalcounter=0      // total number of items
+AppVersion$= "v0.4.1"
+UpdateFile$ = "http://mysite.mweb.co.za/residents/clasqm/haiku/yab-apps/MY_PDFsversion.txt"
+
+OpenWindow()
+MakeMenu()
+MakeColumnBox()
+MakeButtons()
+ScanOrImport()
+

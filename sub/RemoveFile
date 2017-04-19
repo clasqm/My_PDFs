@@ -1,0 +1,20 @@
+//actually remove/trash the file
+sub RemoveFile()
+	local confirm,longname$
+	longname$ = ColumnBox Get$ "CollList", 2, itemselected
+	longname$ = Escaper$(longname$)
+	confirm=alert "Send file to Trash or really delete it?","Trash file","Delete file", "Cancel","Warning"
+	switch confirm
+		case 1 //trash
+				system("trash " + longname$)
+				break
+		case 2 //delete
+			system("rm -f " + longname$)
+			break
+		case 3 //get the hell out of Dodge
+			TotalItems()
+			return 
+		default
+			break
+	end switch
+end sub

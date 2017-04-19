@@ -1,0 +1,25 @@
+//enable or disable the entire UI - expects parameter "enable" or "disable
+// and 1 or 0
+sub UI(onoff$,onoff)
+	menu set "File", "Rescan", onoff$, "MainWindow"
+	menu set "File", "Export", onoff$, "MainWindow"
+	menu set "File", "Import", onoff$, "MainWindow"
+	submenu set "File", "Revert", "to Last Scan", onoff$, "MainWindow"
+	submenu set "File", "Revert", "to Last Filter", onoff$, "MainWindow"
+	menu set "File", "Settings", onoff$, "MainWindow"
+	menu set "File", "Quit", onoff$, "MainWindow"
+	Menu set "Item", "Open", onoff$, "MainWindow"
+	Menu set "Item", "Delete", onoff$, "MainWindow"
+	Menu set "Item", "Copy", onoff$, "MainWindow"	
+	Menu set "Item", "Reveal in Tracker", onoff$, "MainWindow"
+	menu set "Help", "Help", onoff$, "MainWindow"
+	menu set "Help", "About", onoff$, "MainWindow"
+	Option Set "OpenButton", "Enabled", onoff
+	Option Set "DeleteButton", "Enabled", onoff
+	Option Set "CopyButton", "Enabled", onoff
+	Option Set "RevealButton", "Enabled", onoff
+	Option Set "FilterButton", "Enabled", onoff
+	Option Set "FilterText", "Enabled", onoff
+end sub
+
+

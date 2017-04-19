@@ -1,0 +1,16 @@
+//import the text files created in ExportFile()
+sub ImportFile()
+	local importfile$
+	UI("disable",0)
+	ActionDisplay("Importing...")
+	importfile$=Filepanel "Load-File", "Export", "/boot/home"
+	if importfile$="" then //user pressed cancel
+		UI("enable",1)
+		TotalItems()
+		return
+	end if
+	ReadAndDisplay(importfile$)
+	ColumnBox Select "CollList", 1:itemselected=1
+end sub
+
+

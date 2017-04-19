@@ -1,0 +1,31 @@
+//Delete an item from the collection and optionally the file it refers to
+sub DeleteItem()
+	local confirm, attrfile$, attrset$
+	if totalcounter = 0 return
+	UI("disable",0)
+	confirm=alert "This entry will be removed from the collection (but will reappear in the next scan). Remove the file too?","Remove File","Reveal in Tracker", "Just Remove Entry","Warning"
+	switch confirm
+		case 1 //Remove file 
+			RemoveFile()
+			break
+		case 2 // Reveal
+			RevealItem()
+			break
+		case 3 
+			break 
+		default
+			break
+	end switch
+	ColumnBox Remove "CollList", itemselected
+	UI("enable",1)
+	TotalItems()
+	//the next bit prevents the selected item from reverting to 1
+	if totalcounter=1 or totalcounter = 0 then
+		ColumnBox Select "CollList", 1:itemselected=1
+	else
+		itemselected=itemselected - 1
+		ColumnBox Select "CollList", itemselected
+	endif
+end sub
+
+

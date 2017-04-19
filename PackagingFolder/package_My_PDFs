@@ -1,0 +1,11 @@
+#!/bin/sh
+cd /boot/home/projects/ports/my_pdfs
+package create -b my_pdfs_0.4.1-6_gcc2.hpkg
+sleep 0.5
+package add my_pdfs_0.4.1-6_gcc2.hpkg data apps
+sleep 0.5
+addattr BeShare:Info "PDF document collection manager" my_pdfs_0.4.1-6_gcc2.hpkg
+becopy my_pdfs_0.4.1-6_gcc2.hpkg "/Storage/Haiku/My ports"
+mv my_pdfs_0.4.1-6_gcc2.hpkg /boot/home/projects/repo
+
+sync

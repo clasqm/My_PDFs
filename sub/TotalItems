@@ -1,0 +1,10 @@
+//Print number of items in bottom right hand corner
+sub TotalItems()
+	local count$
+	totalcounter = ColumnBox Count "CollList"
+	count$ = str$(totalcounter) + " Items "
+	Draw Flush "TotalView" //clean off old total
+	Draw Text 0,20, count$,"TotalView" 
+end sub
+
+

@@ -1,0 +1,32 @@
+name				My_PDFs
+version				0.4.1-6
+architecture			x86_gcc2
+
+summary			"PDF document collection manager"
+Description			"My PDFs is a program to manage your PDF document collection. It will track down PDFs wherever they are located on your system and let you click on one to open it.
+
+Scanning for PDFs is manual ATM and it does take a few minutes. But if you haven't added new PDFs recently, you can simply use the previous scan results for instant access.
+
+This app will be further developed in the near future to speed things up.
+
+Menu position: Applications | Education
+
+"
+
+packager			"Michel Clasquin-Johnson <clasqm@gmail.com>"
+vendor				"clasqm"
+
+copyrights			"clasqm"
+licenses				"Public Domain"
+
+provides {			
+					My_PDFs = 0.4.1-6
+}
+requires {
+					haiku>=r1~alpha4_pm_hrev50032-1
+					yab>=1.7.5.2
+					app:bepdf
+}
+urls {
+				http://clasquin-johnson.co.za/michel/haiku
+}

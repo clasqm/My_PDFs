@@ -1,0 +1,32 @@
+//Check for first-time usage
+//give user startup options
+//reverting to last scan should speed things up a bit
+sub ScanOrImport()
+	local askuser,settingsexist$
+	UI("disable",0)
+	settingsexist$=system$("if test -e /boot/home/config/settings/Bookshelf.settings; then echo yes; else echo no;fi")
+	//if the settings file does not exist, program has not run before
+	if left$(settingsexist$,2)= "no" then
+		alert "Running program for the first time. My PDFs will scan all mounted BeFS volumes for PDF files.", "OK", "info"
+		Scan()
+		system("touch /boot/home/config/settings/Bookshelf.settings")
+	elseif left$(settingsexist$,3)="yes" then
+		askuser=alert "Scan for PDF files, Revert to previous scan or Import an existing collection?", "Scan", "Revert","Import","none"
+		switch	askuser
+			case 1
+				Scan()
+				break
+			case 2
+				Revert2Scan()
+				break
+			case 3
+				ImportFile()
+				break
+			default
+				break
+		end switch
+	end if
+	UI("enable",1)
+	TotalItems()
+end sub
+

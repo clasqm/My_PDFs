@@ -1,0 +1,9 @@
+//Make the container for the collection
+sub MakeColumnBox()
+	ColumnBox 1,23 to 700,500,"CollList",1, "resizable","MainWindow"
+	ColumnBox Column "CollList", "Title", 1, 400,200,300, "align-left"
+	ColumnBox Column "CollList", "Path", 2, 500, 200,350, "align-left"
+	TotalItems()	
+end sub
+
+

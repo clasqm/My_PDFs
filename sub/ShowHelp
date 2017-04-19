@@ -1,0 +1,22 @@
+sub ShowHelp()
+local startX, startY, help$
+	startX = (Window Get "MainWindow","Position-X") + 50
+	startY = (Window Get "MainWindow","Position-Y") + 50
+	Window Open startX, startY to startX + 600, startY + 400, "HelpBox", "My PDFs Help"
+	Window Set "HelpBox", "Feel", "Floating-App"
+	Window Set "HelpBox", "Flags", "Not-Resizable"
+	Window Set "HelpBox", "Flags", "Not-Zoomable"
+	textedit 1,1 to 600,400, "HelpTextEdit",1 , "HelpBox"
+	Textedit set "HelpTextEdit", "editable", 0
+	restore Helpdata
+	do 
+		read help$
+		if left$(help$,1) = "<" read help$
+		if (help$ = "end_of_help_data") break
+		TextEdit Add "HelpTextEdit", help$ + "\n"
+	loop
+end sub
+
+
+
+

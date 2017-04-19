@@ -1,0 +1,11 @@
+// Setup the main window here
+sub OpenWindow()
+	window open 100,100 to 800,630, "MainWindow", "My PDFs"
+	window set "MainWindow", "Flags", "Not-Resizable, Not-Zoomable"
+	view 625,500 to 700,530, "TotalView", "MainWindow"
+	view 4,503 to 624,530, "ButtonView", "MainWindow"
+end sub
+
+
+
+

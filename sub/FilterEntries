@@ -1,0 +1,32 @@
+//search Titles (not pathnames) for search string
+//save to a temp file in settings, then load that file
+sub FilterEntries()
+	local thefilter$,filtercount, theentry$
+	UI("disable",0)
+	thefilter$= TextControl Get$ "FilterText"
+	if thefilter$ = "" or thefilter$ ="Enter Filter text here" then
+		UI("enable",1)
+		return
+	end if
+	ActionDisplay("Filtering")
+	filtercount=0
+	open "/boot/home/config/settings/bookshelf.filter" for writing as #1
+	for f = 1 to totalcounter
+		theentry$=ColumnBox Get$ "CollList",1, f
+		if instr(lower$(theentry$), lower$(thefilter$)) then
+			filtercount= filtercount + 1
+			theentry$=ColumnBox Get$ "CollList",2, f
+			print #1 theentry$
+		end if	
+	next f
+	close #1
+	if filtercount = 0 then
+		alert "No items found", "OK", "warning"
+		UI("enable",1)
+	else
+		ReadAndDisplay("/boot/home/config/settings/bookshelf.filter")
+		TextControl Set "FilterText", "Enter Filter text here"
+	end if
+	TotalItems()
+end sub
+

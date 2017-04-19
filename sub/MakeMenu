@@ -1,0 +1,19 @@
+// Create the menu
+sub MakeMenu()
+	menu "File", "Rescan", "R", "MainWindow"
+	menu "File", "Export", "X", "MainWindow"
+	menu "File", "Import", "I", "MainWindow"
+	menu "File", "Revert", "", "MainWindow"
+		submenu "File", "Revert", "to Last Scan", "", "MainWindow"
+		submenu "File", "Revert", "to Last Filter", "", "MainWindow"
+	menu "File", "Quit", "Q", "MainWindow"	
+	Menu "Item", "Open", "O", "MainWindow"
+	Menu "Item", "Delete", "D", "MainWindow"
+	Menu "Item", "Copy", "C", "MainWindow"	
+	Menu "Item", "Reveal in Tracker", "R", "MainWindow"
+	menu "Help", "Help", "", "MainWindow"
+	menu "Help", "Updates", "", "MainWindow"
+	menu "Help", "About", "", "MainWindow"
+end sub
+
+

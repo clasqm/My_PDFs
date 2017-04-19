@@ -1,0 +1,12 @@
+//revert to last time a filter was applied
+sub Revert2Filter()
+	local fileexist$
+	fileexist$=system$("if test -e /boot/home/config/settings/bookshelf.filter; then echo yes; else echo no;fi")
+	//if the file does not exist, program has not run before
+	//This is NOT overkill - it is possible that the user has scanned but never filtered before
+	if left$(fileexist$,3)="yes" then
+		ReadAndDisplay("/boot/home/config/settings/bookshelf.filter")
+		ColumnBox Select "CollList", 1:itemselected=1
+	end if
+	//TODO: amalgamate the two reversion subroutines?
+end sub

@@ -1,0 +1,20 @@
+//find spaces, backslashes and single and double quotes in strings and escape them
+sub Escaper$(name$)
+	local name2$
+	for f = 1 to len(name$)
+		if mid$(name$, f, 1) = chr$(39) then
+			name2$=name2$ + chr$(92) + chr$(39)
+		elseif mid$(name$, f, 1) = chr$(92) then
+			name2$=name2$ + chr$(92) + chr$(92)
+		elseif mid$(name$, f, 1) = chr$(34) then
+			name2$=name2$ + chr$(92) + chr$(34)
+		elseif mid$(name$, f, 1) = chr$(32) then
+			name2$=name2$ + chr$(92) + chr$(32)
+		else
+			name2$= name2$ + mid$(name$,f,1)
+		end if	
+	next f
+	return name2$
+End sub
+
+

@@ -1,0 +1,11 @@
+//reveal item in Tracker
+sub RevealItem()
+	local shortname$,longname$, dirname$
+	shortname$ = ColumnBox Get$ "CollList", 1, itemselected
+	longname$ = ColumnBox Get$ "CollList", 2, itemselected
+	dirname$ = left$(longname$, len(longname$) - len(shortname$))
+	dirname$=Escaper$(dirname$)
+	system("/boot/system/Tracker " + dirname$ + " &")
+	TotalItems()
+end sub
+

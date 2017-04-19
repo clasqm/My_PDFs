@@ -1,0 +1,6 @@
+//display message on bottom right corner
+sub ActionDisplay(action$)
+	Draw Flush "TotalView" //clean off old total
+	Draw Text 0,20, action$,"TotalView" 
+end sub
+

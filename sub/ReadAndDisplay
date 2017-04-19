@@ -1,0 +1,22 @@
+//Read a file and pump data into the columnbox
+sub ReadAndDisplay(filename$)
+	local tokennum, itempathname$,shortname$, t$(10),q
+	ColumnBox Clear "CollList"
+	//It is the calling routines job to supply filename$ - no escape chars, no quotes
+	open filename$ for reading as #1
+	q=1
+	while(not EOF(1))
+		line input #1 itempathname$
+		tokennum= token(itempathname$, t$(), "/")
+		shortname$ = t$(tokennum)
+		if instr(itempathname$, "/boot/trash") = 0 then
+			ColumnBox add "CollList", 1, q,20, shortname$
+			ColumnBox add "CollList", 2, q,20, itempathname$
+			q=q+1
+		endif
+	wend
+	close #1
+	TotalItems()
+	UI("enable",1)
+end sub
+

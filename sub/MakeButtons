@@ -1,0 +1,9 @@
+//make buttons and search field
+sub MakeButtons()
+	Button 0,0 to 75,25, "OpenButton", "Open", "ButtonView": Tooltip "OpenButton", "Open this entry with the default viewer application"
+	Button 80,0 to 155,25, "DeleteButton", "Delete", "ButtonView": Tooltip "DeleteButton", "Remove this entry from the collection"
+	Button 160,0 to 235,25, "CopyButton", "Copy", "ButtonView": Tooltip "CopyButton", "Copy this entry to clipboard"
+	Button 240,0 to 315,25, "RevealButton", "Reveal", "ButtonView": Tooltip "RevealButton", "Reveal this entry in Tracker"
+	Button 540,0 to 615,25, "FilterButton", "Filter", "ButtonView": Tooltip "FilterButton", "Edit the textbox to the left to indicate what\nyou want to search for, then click on Filter"
+	TextControl 320,0 to 535, 25, "FilterText", "", "Enter Filter text here", "ButtonView"
+end sub

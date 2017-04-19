@@ -1,0 +1,13 @@
+//Copy either title or pathname to clipboard
+sub ToClipboard()
+	local whichone, entry$
+	whichone = alert "Do you want to copy the Title or the full Pathname of the selected item to clipboard?","Title", "Pathname", "Cancel", "none"
+	switch whichone
+		case 1: case 2
+			entry$=ColumnBox Get$ "CollList",whichone, itemselected
+			Clipboard Copy entry$
+			break
+		default
+			break
+	end switch
+end sub
